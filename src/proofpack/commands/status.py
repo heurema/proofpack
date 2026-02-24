@@ -46,7 +46,7 @@ def cmd_status() -> int:
     run_id = meta.get("run_id", "unknown")
     integrity = meta.get("receipt_integrity", "unknown")
     head_sha = meta.get("repo", {}).get("head_sha", "")
-    state = "finalized" if head_sha else "active"
+    state = "finalized" if head_sha and head_sha != "unknown" else "active"
 
     print(f"Session: {state}")
     print(f"Run ID:  {run_id}")

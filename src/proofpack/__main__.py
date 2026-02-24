@@ -64,10 +64,9 @@ def status() -> None:
     sys.exit(cmd_status())
 
 
-def main() -> int:
+def main() -> None:
     cli()
-    return 0  # unreachable when standalone_mode=True (default)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
