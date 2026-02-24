@@ -22,8 +22,12 @@ def main() -> int:
     exit_code = payload.get("exit_code")
     try:
         if tool_name in ("Bash",):
+            # Narrow hash to only the "command" key so extra tool_input fields
+            # (timeout, description, etc.) don't break acceptance matching.
+            cmd = tool_input.get("command", "") if tool_input else ""
+            input_data = json.dumps({"command": cmd}) if cmd else None
             append_receipt(pp_dir=pp_dir, tool=tool_name, event="tool", exit_code=exit_code,
-                           input_data=json.dumps(tool_input) if tool_input else None,
+                           input_data=input_data,
                            stdout_data=str(tool_output) if tool_output else None,
                            stderr_data=payload.get("stderr", ""))
         elif tool_name in ("Edit", "Write"):

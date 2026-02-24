@@ -39,6 +39,10 @@ def cmd_stop() -> int:
         print("Error: .proofpack/meta.json is not valid JSON.", file=sys.stderr)
         return 1
 
+    if not isinstance(meta, dict):
+        print("Error: .proofpack/meta.json is not a JSON object.", file=sys.stderr)
+        return 1
+
     head_sha = _get_git_head_sha()
 
     if "repo" not in meta or not isinstance(meta.get("repo"), dict):

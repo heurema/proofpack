@@ -116,7 +116,7 @@ def check_artifacts(pp_dir: Path, repo_root: Path | None = None) -> CheckResult:
             missing.append(artifact)
             continue
         resolved = (root / artifact).resolve()
-        if not resolved.is_file():
+        if not resolved.is_file() or not resolved.is_relative_to(root.resolve()):
             missing.append(artifact)
 
     if missing:
