@@ -1,6 +1,7 @@
 """Tests for check 4 (acceptance commands) and check 5 (artifact existence)."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -28,16 +29,23 @@ def _make_contract(
     )
 
 
-def _bash_event(exit_code: int = 0) -> str:
-    return json.dumps(
-        {
-            "run_id": "run1",
-            "t": "2024-01-01T00:00:00Z",
-            "event": "tool_use",
-            "tool": "Bash",
-            "exit_code": exit_code,
-        }
-    )
+def _cmd_hash(command: str) -> str:
+    """Compute input_sha256 as the hook would for a given command string."""
+    input_json = json.dumps({"command": command})
+    return hashlib.sha256(input_json.encode()).hexdigest()
+
+
+def _bash_event(exit_code: int = 0, command: str | None = None) -> str:
+    data: dict[str, object] = {
+        "run_id": "run1",
+        "t": "2024-01-01T00:00:00Z",
+        "event": "tool_use",
+        "tool": "Bash",
+        "exit_code": exit_code,
+    }
+    if command is not None:
+        data["input_sha256"] = _cmd_hash(command)
+    return json.dumps(data)
 
 
 # ── acceptance_commands ───────────────────────────────────────────────────────
@@ -57,7 +65,10 @@ def test_commands_present_passes(tmp_path: Path) -> None:
     pp = tmp_path / ".proofpack"
     pp.mkdir()
     _make_contract(pp, commands=["pytest", "ruff check"])
-    receipts = "\n".join([_bash_event(0), _bash_event(0)])
+    receipts = "\n".join([
+        _bash_event(0, command="pytest"),
+        _bash_event(0, command="ruff check"),
+    ])
     (pp / "receipts.jsonl").write_text(receipts + "\n")
     result = check_acceptance_commands(pp)
     assert result.passed is True
@@ -67,19 +78,19 @@ def test_commands_missing_fails(tmp_path: Path) -> None:
     pp = tmp_path / ".proofpack"
     pp.mkdir()
     _make_contract(pp, commands=["pytest", "ruff check"])
-    # Only 1 successful Bash event but 2 required
-    (pp / "receipts.jsonl").write_text(_bash_event(0) + "\n")
+    # Only pytest matched, ruff check missing
+    (pp / "receipts.jsonl").write_text(_bash_event(0, command="pytest") + "\n")
     result = check_acceptance_commands(pp)
     assert result.passed is False
-    assert "Insufficient" in result.message
+    assert "ruff check" in result.message
 
 
 def test_failed_bash_events_not_counted(tmp_path: Path) -> None:
     pp = tmp_path / ".proofpack"
     pp.mkdir()
     _make_contract(pp, commands=["pytest"])
-    # exit_code=1 should not count
-    (pp / "receipts.jsonl").write_text(_bash_event(1) + "\n")
+    # exit_code=1 should not count even with matching hash
+    (pp / "receipts.jsonl").write_text(_bash_event(1, command="pytest") + "\n")
     result = check_acceptance_commands(pp)
     assert result.passed is False
 
@@ -91,6 +102,26 @@ def test_empty_receipts_with_required_commands_fails(tmp_path: Path) -> None:
     (pp / "receipts.jsonl").write_text("")
     result = check_acceptance_commands(pp)
     assert result.passed is False
+
+
+def test_unmatched_bash_event_doesnt_satisfy(tmp_path: Path) -> None:
+    """A successful Bash event for a different command should not satisfy."""
+    pp = tmp_path / ".proofpack"
+    pp.mkdir()
+    _make_contract(pp, commands=["pytest"])
+    (pp / "receipts.jsonl").write_text(_bash_event(0, command="echo hello") + "\n")
+    result = check_acceptance_commands(pp)
+    assert result.passed is False
+
+
+def test_artifacts_path_traversal_rejected(tmp_path: Path) -> None:
+    """Absolute paths and parent-escaping paths should be rejected."""
+    pp = tmp_path / ".proofpack"
+    pp.mkdir()
+    _make_contract(pp, artifacts=["/etc/passwd", "../outside.txt"])
+    result = check_artifacts(pp, repo_root=tmp_path)
+    assert result.passed is False
+    assert "/etc/passwd" in result.message
 
 
 # ── artifacts ─────────────────────────────────────────────────────────────────

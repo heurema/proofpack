@@ -85,6 +85,7 @@ def check_scope(pp_dir: Path, changed_files: list[str] | None = None) -> CheckRe
             name=name,
             passed=True,
             message="Scope check skipped — no changed files available",
+            severity="WARN",
         )
 
     violations = _check_file_scope(

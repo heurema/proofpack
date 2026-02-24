@@ -32,3 +32,10 @@ def test_cli_verify_help() -> None:
     )
     assert result.returncode == 0
     assert "--mode" in result.stdout
+
+
+def test_cli_no_command_returns_nonzero() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "proofpack"], capture_output=True, text=True
+    )
+    assert result.returncode == 2

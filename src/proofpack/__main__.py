@@ -76,7 +76,7 @@ def main() -> int:
         return cmd_verify(mode=args.mode, json_output=args.json_output)
 
     parser.print_help()
-    return 0
+    return 2
 
 
 if __name__ == "__main__":

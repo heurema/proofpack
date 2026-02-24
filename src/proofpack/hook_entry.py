@@ -20,18 +20,24 @@ def main() -> int:
     tool_input = payload.get("tool_input", {})
     tool_output = payload.get("tool_output", "")
     exit_code = payload.get("exit_code")
-    if tool_name in ("Bash",):
-        append_receipt(pp_dir=pp_dir, tool=tool_name, event="tool", exit_code=exit_code,
-                       input_data=json.dumps(tool_input) if tool_input else None,
-                       stdout_data=str(tool_output) if tool_output else None,
-                       stderr_data=payload.get("stderr", ""))
-    elif tool_name in ("Edit", "Write"):
-        append_receipt(pp_dir=pp_dir, tool=tool_name,
-                       event="edit" if tool_name == "Edit" else "write",
-                       path=tool_input.get("file_path", ""))
-    elif tool_name in ("Read", "Grep", "Glob"):
-        append_receipt(pp_dir=pp_dir, tool=tool_name, event="read",
-                       path=tool_input.get("file_path", tool_input.get("path", "")))
+    try:
+        if tool_name in ("Bash",):
+            append_receipt(pp_dir=pp_dir, tool=tool_name, event="tool", exit_code=exit_code,
+                           input_data=json.dumps(tool_input) if tool_input else None,
+                           stdout_data=str(tool_output) if tool_output else None,
+                           stderr_data=payload.get("stderr", ""))
+        elif tool_name in ("Edit", "Write"):
+            # NOTE: before/after content hashes not available from hook payload.
+            # Claude Code hooks only provide tool_input (file_path, old_string, new_string
+            # for Edit) but not the full file before/after state. Path-only receipt.
+            append_receipt(pp_dir=pp_dir, tool=tool_name,
+                           event="edit" if tool_name == "Edit" else "write",
+                           path=tool_input.get("file_path", ""))
+        elif tool_name in ("Read", "Grep", "Glob"):
+            append_receipt(pp_dir=pp_dir, tool=tool_name, event="read",
+                           path=tool_input.get("file_path", tool_input.get("path", "")))
+    except Exception:
+        pass  # fail-open: never crash the hook
     return 0
 
 

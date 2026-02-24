@@ -135,3 +135,4 @@ def test_check_scope_no_changed_files_skips(tmp_path: Path) -> None:
     result = check_scope(pp, changed_files=None)
     assert result.passed is True
     assert "skipped" in result.message
+    assert result.severity == "WARN"

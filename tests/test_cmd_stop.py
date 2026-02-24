@@ -40,3 +40,32 @@ def test_stop_no_meta(tmp_path: Path, monkeypatch: object) -> None:
     mp.chdir(tmp_path)
     result = cmd_stop()
     assert result == 1
+
+
+def test_stop_malformed_meta_no_repo_key(tmp_path: Path, monkeypatch: object) -> None:
+    """C3: stop should handle meta.json missing 'repo' key gracefully."""
+    import pytest
+
+    mp = pytest.MonkeyPatch() if not isinstance(monkeypatch, pytest.MonkeyPatch) else monkeypatch
+    mp.chdir(tmp_path)
+    pp = tmp_path / ".proofpack"
+    pp.mkdir()
+    (pp / "meta.json").write_text(json.dumps({"run_id": "run1"}))
+    result = cmd_stop()
+    assert result == 0
+    meta = json.loads((pp / "meta.json").read_text())
+    assert "repo" in meta
+    assert meta["repo"]["head_sha"] != ""
+
+
+def test_stop_invalid_json_meta(tmp_path: Path, monkeypatch: object) -> None:
+    """C3: stop should handle invalid JSON in meta.json."""
+    import pytest
+
+    mp = pytest.MonkeyPatch() if not isinstance(monkeypatch, pytest.MonkeyPatch) else monkeypatch
+    mp.chdir(tmp_path)
+    pp = tmp_path / ".proofpack"
+    pp.mkdir()
+    (pp / "meta.json").write_text("{bad json")
+    result = cmd_stop()
+    assert result == 1

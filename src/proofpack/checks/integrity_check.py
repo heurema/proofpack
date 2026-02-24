@@ -8,7 +8,7 @@ from pathlib import Path
 from proofpack.checks import CheckResult
 from proofpack.schemas import MetaV1
 
-_SHA256_RE = re.compile(r"^[0-9a-fA-F]{4,64}$")
+_SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 _SHA_FIELDS = (
     "input_sha256",
     "stdout_sha256",

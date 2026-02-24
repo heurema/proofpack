@@ -8,6 +8,7 @@ import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 
 def _get_git_head_sha() -> str:
@@ -32,13 +33,17 @@ def cmd_start(run_id: str) -> int:
         print("Error: .proofpack/ not found. Run 'proofpack init' first.", file=sys.stderr)
         return 1
 
+    meta_path = pp_dir / "meta.json"
+    if meta_path.exists():
+        print("Warning: session already active (meta.json exists). Overwriting.", file=sys.stderr)
+
     if not run_id:
         ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         run_id = f"{ts}__local"
 
     base_sha = _get_git_head_sha()
 
-    meta: dict[object, object] = {
+    meta: dict[str, Any] = {
         "schema_version": 1,
         "run_id": run_id,
         "receipt_integrity": "full",

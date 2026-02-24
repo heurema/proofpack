@@ -1,6 +1,7 @@
 """Check 4 & 5: Acceptance commands and artifact existence."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -34,8 +35,16 @@ def check_acceptance_commands(pp_dir: Path) -> CheckResult:
     if not receipts_path.exists():
         return CheckResult(name=name, passed=False, message="receipts.jsonl not found")
 
-    # Count successful Bash events (tool=Bash, exit_code=0)
-    successful_bash = 0
+    # Build set of expected input_sha256 hashes for required commands
+    required_hashes: dict[str, str] = {}
+    for cmd in required:
+        # Hook stores input_data as json.dumps(tool_input), where tool_input is {"command": cmd}
+        input_json = json.dumps({"command": cmd})
+        h = hashlib.sha256(input_json.encode()).hexdigest()
+        required_hashes[h] = cmd
+
+    # Track which required commands were satisfied
+    matched: set[str] = set()
     for line in receipts_path.read_text().splitlines():
         line = line.strip()
         if not line:
@@ -45,25 +54,26 @@ def check_acceptance_commands(pp_dir: Path) -> CheckResult:
         except json.JSONDecodeError:
             continue
         if raw.get("tool") == "Bash" and raw.get("exit_code") == 0:
-            successful_bash += 1
+            input_hash = raw.get("input_sha256")
+            if isinstance(input_hash, str) and input_hash in required_hashes:
+                matched.add(input_hash)
 
-    if successful_bash < len(required):
+    missing_cmds = [cmd for h, cmd in required_hashes.items() if h not in matched]
+
+    if missing_cmds:
         return CheckResult(
             name=name,
             passed=False,
             message=(
-                f"Insufficient successful Bash events: "
-                f"need {len(required)}, found {successful_bash}"
+                f"Missing acceptance commands: {', '.join(missing_cmds[:5])}"
+                + (f" ... and {len(missing_cmds) - 5} more" if len(missing_cmds) > 5 else "")
             ),
         )
 
     return CheckResult(
         name=name,
         passed=True,
-        message=(
-            f"Acceptance commands satisfied — "
-            f"{successful_bash} successful Bash event(s) for {len(required)} required command(s)"
-        ),
+        message=f"All {len(required)} acceptance command(s) satisfied",
     )
 
 
@@ -101,7 +111,12 @@ def check_artifacts(pp_dir: Path, repo_root: Path | None = None) -> CheckResult:
 
     missing: list[str] = []
     for artifact in artifacts:
-        if not (root / artifact).exists():
+        # Reject absolute paths and parent-escaping traversals
+        if artifact.startswith("/") or ".." in artifact.split("/"):
+            missing.append(artifact)
+            continue
+        resolved = (root / artifact).resolve()
+        if not resolved.is_file():
             missing.append(artifact)
 
     if missing:

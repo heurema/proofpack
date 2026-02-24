@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 
 def cmd_init(title: str, scope: str) -> int:
@@ -16,7 +17,7 @@ def cmd_init(title: str, scope: str) -> int:
 
     allowed_paths = [p.strip() for p in scope.split(",") if p.strip()] if scope else []
 
-    contract: dict[object, object] = {
+    contract: dict[str, Any] = {
         "schema_version": 1,
         "run_id": "",
         "work": {

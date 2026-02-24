@@ -33,8 +33,16 @@ def cmd_stop() -> int:
         )
         return 1
 
-    meta = json.loads(meta_path.read_text())
+    try:
+        meta = json.loads(meta_path.read_text())
+    except json.JSONDecodeError:
+        print("Error: .proofpack/meta.json is not valid JSON.", file=sys.stderr)
+        return 1
+
     head_sha = _get_git_head_sha()
+
+    if "repo" not in meta or not isinstance(meta.get("repo"), dict):
+        meta["repo"] = {}
     meta["repo"]["head_sha"] = head_sha
 
     meta_path.write_text(json.dumps(meta, indent=2, sort_keys=False) + "\n")

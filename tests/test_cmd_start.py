@@ -55,3 +55,23 @@ def test_start_no_proofpack_dir(tmp_path: Path, monkeypatch: object) -> None:
     mp.chdir(tmp_path)
     result = cmd_start(run_id="x")
     assert result == 1
+
+
+def test_start_warns_on_existing_session(
+    tmp_path: Path, monkeypatch: object, capsys: object
+) -> None:
+    """I3: start should warn when meta.json already exists."""
+    import pytest
+
+    mp = pytest.MonkeyPatch() if not isinstance(monkeypatch, pytest.MonkeyPatch) else monkeypatch
+    mp.chdir(tmp_path)
+    _setup_proofpack(tmp_path)
+    # First start
+    cmd_start(run_id="run1")
+    # Second start should warn but succeed
+    result = cmd_start(run_id="run2")
+    assert result == 0
+    captured = capsys.readouterr()  # type: ignore[union-attr]
+    assert "already active" in captured.err
+    meta = json.loads((tmp_path / ".proofpack" / "meta.json").read_text())
+    assert meta["run_id"] == "run2"

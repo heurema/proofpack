@@ -49,8 +49,8 @@ def test_valid_receipts_passes(tmp_path: Path) -> None:
     _make_meta(pp)
     events = "\n".join(
         [
-            _make_event(stdout_sha256="deadbeef"),
-            _make_event(input_sha256="cafebabe1234"),
+            _make_event(stdout_sha256="a" * 64),
+            _make_event(input_sha256="b" * 64),
         ]
     )
     (pp / "receipts.jsonl").write_text(events + "\n")
@@ -83,11 +83,22 @@ def test_invalid_sha256_too_short_fails(tmp_path: Path) -> None:
     pp = tmp_path / ".proofpack"
     pp.mkdir()
     _make_meta(pp)
-    # Less than 4 hex chars
+    # Less than 64 hex chars — must be rejected
     (pp / "receipts.jsonl").write_text(_make_event(before_sha256="ab") + "\n")
     result = check_integrity(pp)
     assert result.passed is False
     assert "before_sha256" in result.message
+
+
+def test_short_hex_hash_rejected(tmp_path: Path) -> None:
+    """8-char hex like 'deadbeef' must fail — only 64-char SHA256 accepted."""
+    pp = tmp_path / ".proofpack"
+    pp.mkdir()
+    _make_meta(pp)
+    (pp / "receipts.jsonl").write_text(_make_event(stdout_sha256="deadbeef") + "\n")
+    result = check_integrity(pp)
+    assert result.passed is False
+    assert "stdout_sha256" in result.message
 
 
 def test_missing_tool_field_fails(tmp_path: Path) -> None:
