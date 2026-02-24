@@ -57,12 +57,7 @@ def test_verify_json_output(tmp_path: Path, monkeypatch: object, capsys: object)
     _make_full_proofpack(tmp_path)
     result = cmd_verify(mode="fail", json_output=True)
     assert result == 0
-    import sys
-    out = pytest.CaptureFixture  # type: ignore[attr-defined]
-    # Use capsys directly
-    captured = capsys  # type: ignore[assignment]
-    assert hasattr(captured, "readouterr")
-    readouterr = captured.readouterr()  # type: ignore[union-attr]
+    readouterr = capsys.readouterr()  # type: ignore[union-attr]
     data = json.loads(readouterr.out)
     assert data["verdict"] == "PASS"
 

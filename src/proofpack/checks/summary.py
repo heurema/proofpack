@@ -37,18 +37,15 @@ def generate_summary(pp_dir: Path, results: list[CheckResult], verdict: str) -> 
                 scope_parts.append(f"allowed: {', '.join(allowed)}")
             if forbidden:
                 scope_parts.append(f"forbidden: {', '.join(forbidden)}")
-            if scope_parts:
-                work_scope = "; ".join(scope_parts)
-            else:
-                work_scope = "unrestricted"
+            work_scope = "; ".join(scope_parts) if scope_parts else "unrestricted"
         except (json.JSONDecodeError, AttributeError):
             pass
 
     lines: list[str] = [
         "# Proofpack Verification Summary",
         "",
-        f"| Field | Value |",
-        f"|-------|-------|",
+        "| Field | Value |",
+        "|-------|-------|",
         f"| Timestamp | {timestamp} |",
         f"| Run ID | `{run_id}` |",
         f"| Verdict | **{verdict}** |",
@@ -65,10 +62,7 @@ def generate_summary(pp_dir: Path, results: list[CheckResult], verdict: str) -> 
     ]
 
     for i, result in enumerate(results, start=1):
-        if result.passed:
-            status = "PASS"
-        else:
-            status = result.severity  # FAIL or WARN
+        status = "PASS" if result.passed else result.severity
         lines.append(f"| {i} | {result.name} | {status} | {result.message} |")
 
     lines.append("")

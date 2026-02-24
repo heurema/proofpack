@@ -77,15 +77,14 @@ def check_integrity(pp_dir: Path) -> CheckResult:
         # Validate SHA-256 fields
         for sha_field in _SHA_FIELDS:
             value = raw.get(sha_field)
-            if value is not None:
-                if not isinstance(value, str) or not _SHA256_RE.match(value):
-                    return CheckResult(
-                        name=name,
-                        passed=False,
-                        message=(
-                            f"receipts.jsonl line {lineno} invalid {sha_field}: {value!r}"
-                        ),
-                    )
+            if value is not None and (not isinstance(value, str) or not _SHA256_RE.match(value)):
+                return CheckResult(
+                    name=name,
+                    passed=False,
+                    message=(
+                        f"receipts.jsonl line {lineno} invalid {sha_field}: {value!r}"
+                    ),
+                )
 
         checked += 1
 

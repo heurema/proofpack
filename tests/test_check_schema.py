@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from proofpack.checks.schema_check import check_schema
 
 
@@ -48,7 +46,9 @@ def test_valid_schema_passes(tmp_path: Path) -> None:
 
 def test_valid_schema_with_events_passes(tmp_path: Path) -> None:
     pp = _make_valid_pp(tmp_path)
-    event = json.dumps({"run_id": "run1", "t": "2024-01-01T00:00:00Z", "event": "tool_use", "tool": "Bash"})
+    event = json.dumps(
+        {"run_id": "run1", "t": "2024-01-01T00:00:00Z", "event": "tool_use", "tool": "Bash"}
+    )
     (pp / "receipts.jsonl").write_text(event + "\n")
     result = check_schema(pp)
     assert result.passed is True

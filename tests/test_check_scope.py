@@ -6,7 +6,6 @@ from pathlib import Path
 
 from proofpack.checks.scope_check import _check_file_scope, check_scope
 
-
 # ── unit tests for _check_file_scope ──────────────────────────────────────────
 
 

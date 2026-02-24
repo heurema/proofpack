@@ -49,23 +49,25 @@ def check_schema(pp_dir: Path) -> CheckResult:
         )
 
     event_count = 0
-    try:
-        for lineno, line in enumerate(receipts_path.read_text().splitlines(), start=1):
-            line = line.strip()
-            if not line:
-                continue
+    for lineno, line in enumerate(receipts_path.read_text().splitlines(), start=1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
             ReceiptEvent.from_json_line(line)
-            event_count += 1
-    except json.JSONDecodeError as exc:
-        return CheckResult(
-            name=name, passed=False, message=f"receipts.jsonl line {lineno} invalid JSON: {exc}"
-        )
-    except (KeyError, TypeError) as exc:
-        return CheckResult(
-            name=name,
-            passed=False,
-            message=f"receipts.jsonl line {lineno} missing required field: {exc}",
-        )
+        except json.JSONDecodeError as exc:
+            return CheckResult(
+                name=name,
+                passed=False,
+                message=f"receipts.jsonl line {lineno} invalid JSON: {exc}",
+            )
+        except (KeyError, TypeError) as exc:
+            return CheckResult(
+                name=name,
+                passed=False,
+                message=f"receipts.jsonl line {lineno} missing required field: {exc}",
+            )
+        event_count += 1
 
     return CheckResult(
         name=name,
