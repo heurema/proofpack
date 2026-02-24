@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
+
+_SHA_RE = re.compile(r"^[0-9a-f]{7,40}$")
 
 
 def cmd_diff(full: bool = False) -> int:
@@ -37,6 +40,18 @@ def cmd_diff(full: bool = False) -> int:
             "Error: base_sha is 'unknown' — cannot compute diff (git was unavailable at session start).",
             file=sys.stderr,
         )
+        return 1
+
+    if not _SHA_RE.match(base_sha):
+        print(f"Error: base_sha is not a valid hex SHA: {base_sha!r}", file=sys.stderr)
+        return 1
+
+    # Treat "unknown" head_sha the same as empty (diff against HEAD)
+    if head_sha == "unknown":
+        head_sha = ""
+
+    if head_sha and not _SHA_RE.match(head_sha):
+        print(f"Error: head_sha is not a valid hex SHA: {head_sha!r}", file=sys.stderr)
         return 1
 
     # Build git diff command
