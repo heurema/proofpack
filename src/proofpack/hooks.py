@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -29,7 +29,7 @@ def append_receipt(
 
     record: dict[str, object] = {
         "run_id": run_id,
-        "t": datetime.now(timezone.utc).isoformat(),
+        "t": datetime.now(UTC).isoformat(),
         "event": event,
         "tool": tool,
     }

@@ -1,6 +1,7 @@
 """Tests for receipt writing from hook events."""
 import json
 from pathlib import Path
+
 from proofpack.hooks import append_receipt
 
 

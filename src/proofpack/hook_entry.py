@@ -9,10 +9,7 @@ from proofpack.hooks import append_receipt
 
 
 def main() -> int:
-    if len(sys.argv) < 2:
-        pp_dir = Path.cwd() / ".proofpack"
-    else:
-        pp_dir = Path(sys.argv[1])
+    pp_dir = Path.cwd() / ".proofpack" if len(sys.argv) < 2 else Path(sys.argv[1])
     if not pp_dir.is_dir():
         return 0  # fail-open
     try:
