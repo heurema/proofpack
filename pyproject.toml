@@ -5,6 +5,7 @@ description = "Proof-carrying CI gate for AI agent changes"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
+dependencies = ["click>=8.1"]
 authors = [
     { name = "Vitaly D." },
 ]

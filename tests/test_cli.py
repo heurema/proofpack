@@ -39,3 +39,11 @@ def test_cli_no_command_returns_nonzero() -> None:
         [sys.executable, "-m", "proofpack"], capture_output=True, text=True
     )
     assert result.returncode == 2
+
+
+def test_cli_status_help() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "proofpack", "status", "--help"], capture_output=True, text=True
+    )
+    assert result.returncode == 0
+    assert "session" in result.stdout.lower() or "status" in result.stdout.lower()
