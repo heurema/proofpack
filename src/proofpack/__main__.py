@@ -64,6 +64,15 @@ def status() -> None:
     sys.exit(cmd_status())
 
 
+@cli.command()
+@click.option("--full", is_flag=True, default=False, help="Show full unified diff instead of stat summary.")
+def diff(full: bool) -> None:
+    """Show git diff since session start."""
+    from proofpack.commands.diff import cmd_diff
+
+    sys.exit(cmd_diff(full=full))
+
+
 def main() -> None:
     cli()
 
