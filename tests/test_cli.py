@@ -47,3 +47,12 @@ def test_cli_status_help() -> None:
     )
     assert result.returncode == 0
     assert "session" in result.stdout.lower() or "status" in result.stdout.lower()
+
+
+def test_cli_verify_dry_run_in_help() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "proofpack", "verify", "--help"],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0
+    assert "--dry-run" in result.stdout
