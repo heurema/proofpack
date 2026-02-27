@@ -49,11 +49,13 @@ def stop() -> None:
 @click.option("--mode", type=click.Choice(["warn", "fail"]), default="fail",
               help="Verification mode: warn (exit 0) or fail (exit 1) on violations.")
 @click.option("--json", "json_output", is_flag=True, help="Output results as JSON.")
-def verify(mode: str, json_output: bool) -> None:
+@click.option("--dry-run", "dry_run", is_flag=True, default=False,
+              help="Validate bundle without writing summary.md.")
+def verify(mode: str, json_output: bool, dry_run: bool) -> None:
     """Verify a proofpack run."""
     from proofpack.commands.verify import cmd_verify
 
-    sys.exit(cmd_verify(mode=mode, json_output=json_output))
+    sys.exit(cmd_verify(mode=mode, json_output=json_output, dry_run=dry_run))
 
 
 @cli.command()

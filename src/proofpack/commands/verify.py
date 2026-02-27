@@ -25,12 +25,13 @@ def _read_receipt_integrity(pp_dir: Path) -> str:
         return "full"
 
 
-def cmd_verify(mode: str, json_output: bool) -> int:
+def cmd_verify(mode: str, json_output: bool, dry_run: bool = False) -> int:
     """Run the full verify pipeline and report results.
 
     Args:
         mode: "fail" to exit 1 on FAIL severity, "warn" to always exit 0.
         json_output: if True, emit JSON instead of Markdown summary.
+        dry_run: if True, skip writing summary.md to disk.
 
     Returns:
         0 on PASS/WARN, 1 on FAIL (when mode="fail").
@@ -99,8 +100,9 @@ def cmd_verify(mode: str, json_output: bool) -> int:
 
     # Generate and write summary
     summary_text = generate_summary(pp_dir, results, verdict)
-    summary_path = pp_dir / "summary.md"
-    summary_path.write_text(summary_text)
+    if not dry_run:
+        summary_path = pp_dir / "summary.md"
+        summary_path.write_text(summary_text)
 
     if json_output:
         output = {
