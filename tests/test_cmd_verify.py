@@ -126,3 +126,24 @@ def test_verify_json_output_standalone(tmp_path: Path, monkeypatch: object, caps
     assert data["verdict"] == "PASS"
     assert isinstance(data["checks"], list)
     assert len(data["checks"]) == 5
+
+
+def test_verify_dry_run_no_summary_file(tmp_path: Path, monkeypatch: object, capsys: object) -> None:
+    import pytest
+    mp = pytest.MonkeyPatch() if not isinstance(monkeypatch, pytest.MonkeyPatch) else monkeypatch
+    mp.chdir(tmp_path)
+    _make_full_proofpack(tmp_path)
+    result = cmd_verify(mode="fail", json_output=False, dry_run=True)
+    assert result == 0
+    assert not (tmp_path / ".proofpack" / "summary.md").exists()
+
+
+def test_verify_dry_run_still_prints(tmp_path: Path, monkeypatch: object, capsys: object) -> None:
+    import pytest
+    mp = pytest.MonkeyPatch() if not isinstance(monkeypatch, pytest.MonkeyPatch) else monkeypatch
+    mp.chdir(tmp_path)
+    _make_full_proofpack(tmp_path)
+    result = cmd_verify(mode="fail", json_output=False, dry_run=True)
+    assert result == 0
+    out = capsys.readouterr().out  # type: ignore[union-attr]
+    assert "PASS" in out or "proofpack" in out.lower()

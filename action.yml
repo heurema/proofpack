@@ -5,6 +5,10 @@ inputs:
     description: "Verification mode: warn or fail"
     required: false
     default: "fail"
+  dry-run:
+    description: "Validate bundle without writing summary.md"
+    required: false
+    default: "false"
   python-version:
     description: "Python version"
     required: false
@@ -17,7 +21,7 @@ runs:
         python-version: ${{ inputs.python-version }}
     - run: pip install .
       shell: bash
-    - run: proofpack verify --mode ${{ inputs.mode }} --json
+    - run: proofpack verify --mode ${{ inputs.mode }} --json${{ inputs.dry-run == 'true' && ' --dry-run' || '' }}
       shell: bash
     - uses: actions/upload-artifact@v4
       if: always()
