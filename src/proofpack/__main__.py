@@ -51,11 +51,36 @@ def stop() -> None:
 @click.option("--json", "json_output", is_flag=True, help="Output results as JSON.")
 @click.option("--dry-run", "dry_run", is_flag=True, default=False,
               help="Validate bundle without writing summary.md.")
-def verify(mode: str, json_output: bool, dry_run: bool) -> None:
+@click.option("--signum", "signum_dir", default=None,
+              help="Verify signum artifacts instead of proofpack.")
+def verify(mode: str, json_output: bool, dry_run: bool, signum_dir: str | None) -> None:
     """Verify a proofpack run."""
-    from proofpack.commands.verify import cmd_verify
+    if signum_dir is not None:
+        from proofpack.commands.verify_signum import cmd_verify_signum
 
-    sys.exit(cmd_verify(mode=mode, json_output=json_output, dry_run=dry_run))
+        sys.exit(cmd_verify_signum(
+            signum_dir=signum_dir, mode=mode, json_output=json_output, dry_run=dry_run,
+        ))
+    else:
+        from proofpack.commands.verify import cmd_verify
+
+        sys.exit(cmd_verify(mode=mode, json_output=json_output, dry_run=dry_run))
+
+
+@cli.command("verify-signum")
+@click.argument("signum_dir", default=".signum")
+@click.option("--mode", type=click.Choice(["warn", "fail"]), default="fail",
+              help="Verification mode: warn (exit 0) or fail (exit 1) on violations.")
+@click.option("--json", "json_output", is_flag=True, help="Output results as JSON.")
+@click.option("--dry-run", "dry_run", is_flag=True, default=False,
+              help="Validate without writing summary.md.")
+def verify_signum(signum_dir: str, mode: str, json_output: bool, dry_run: bool) -> None:
+    """Verify signum artifacts (.signum/ directory)."""
+    from proofpack.commands.verify_signum import cmd_verify_signum
+
+    sys.exit(cmd_verify_signum(
+        signum_dir=signum_dir, mode=mode, json_output=json_output, dry_run=dry_run,
+    ))
 
 
 @cli.command()

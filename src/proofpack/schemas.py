@@ -1,10 +1,63 @@
-"""Schema models for proofpack: ContractV1, MetaV1, ReceiptEvent."""
+"""Schema models for proofpack: ContractV1, MetaV1, ReceiptEvent, Signum V2."""
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
 from typing import Any
+
+# ── Signum V2 schemas ─────────────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class SignumContractV2:
+    """Parsed representation of a signum contract.json (schema version 2)."""
+
+    schema_version: str
+    goal: str
+    in_scope: list[str]
+    out_of_scope: list[str]
+    acceptance_criteria: list[dict[str, Any]]
+    risk_level: str
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any]) -> SignumContractV2:
+        return cls(
+            schema_version=str(raw["schema_version"]),
+            goal=raw["goal"],
+            in_scope=raw.get("inScope", []),
+            out_of_scope=raw.get("outOfScope", []),
+            acceptance_criteria=raw.get("acceptanceCriteria", []),
+            risk_level=raw.get("riskLevel", "unknown"),
+        )
+
+
+@dataclass(frozen=True)
+class SignumProofpackV2:
+    """Parsed representation of .signum/proofpack.json (schema version 2)."""
+
+    schema_version: str
+    run_id: str
+    decision: str
+    contract: str
+    diff: str
+    checksums: dict[str, str]
+    summary: str
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any]) -> SignumProofpackV2:
+        return cls(
+            schema_version=str(raw["schema_version"]),
+            run_id=raw["run_id"],
+            decision=raw["decision"],
+            contract=raw.get("contract", "contract.json"),
+            diff=raw.get("diff", "combined.patch"),
+            checksums=raw.get("checksums", {}),
+            summary=raw.get("summary", ""),
+        )
+
+
+# ── Proofpack V1 schemas ─────────────────────────────────────────────────────
 
 
 @dataclass(frozen=True)
