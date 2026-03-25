@@ -1,11 +1,21 @@
-# Proofpack
+```
+                            ____                 __
+    ____  _________  ____  / __/___  ____ ______/ /__
+   / __ \/ ___/ __ \/ __ \/ /_/ __ \/ __ `/ ___/ //_/
+  / /_/ / /  / /_/ / /_/ / __/ /_/ / /_/ / /__/ ,<
+ / .___/_/   \____/\____/_/ / .___/\__,_/\___/_/|_|
+/_/                        /_/
+```
 
-Proof-carrying CI gate for AI agent changes.
+**Proof-carrying CI gate for AI agent changes.**
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+> Format + CLI + CI gate. Contracts, receipts, and deterministic verification.
 
 **Status:** MVP (pre-code)
 
-Proofpack is a format + CLI + CI gate that accompanies changes made by AI agents with verifiable proof:
-contracts, receipts, and deterministic verification.
+---
 
 ## Concepts
 
